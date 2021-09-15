@@ -11,17 +11,13 @@ var (
 	defaultStopTimeout = int64(10)
 )
 
-// PodSandboxManager contains methods for operating on PodSandboxes. The methods
-// are thread-safe.
+// PodSandboxManager contains methods for operating on PodSandboxes. The methods are thread-safe.
 type IPodSandboxManager interface {
-	// RunPodSandbox creates and starts a pod-level sandbox. Runtimes should ensure
-	// the sandbox is in ready state.
+	// RunPodSandbox creates and starts a pod-level sandbox. Runtimes should ensure the sandbox is in ready state.
 	RunPodSandbox(config *runtimeapi.PodSandboxConfig, runtimeHandler string) (string, error)
-	// StopPodSandbox stops the sandbox. If there are any running containers in the
-	// sandbox, they should be force terminated.
+	// StopPodSandbox stops the sandbox. If there are any running containers in the sandbox, they should be force terminated.
 	StopPodSandbox(podSandboxID string) error
-	// RemovePodSandbox removes the sandbox. If there are running containers in the
-	// sandbox, they should be forcibly removed.
+	// RemovePodSandbox removes the sandbox. If there are running containers in the sandbox, they should be forcibly removed.
 	RemovePodSandbox(podSandboxID string) error
 	// PodSandboxStatus returns the Status of the PodSandbox.
 	PodSandboxStatus(podSandboxID string) (*runtimeapi.PodSandboxStatus, error)
@@ -33,11 +29,25 @@ type IPodSandboxManager interface {
 
 type PodSandboxManager struct {
 	ContainerManager ContainerManager
-
 	// SandboxBaseDir is the directory used to store sandbox files like /etc/hosts, /etc/resolv.conf, etc.
 	SandboxBaseDir string
 	// SandboxImage is the image used by sandbox container.
 	SandboxImage string
+}
+
+// NewPodSandboxManager create PodSandboxManager instance
+func NewPodSandboxManager() (psm *PodSandboxManager, err error) {
+	var containerManager *ContainerManager
+	containerManager, err = NewContainerManager()
+	if err != nil {
+		return nil, err
+	}
+	psm = &PodSandboxManager{
+		ContainerManager: *containerManager,
+		SandboxBaseDir:   "/",
+		SandboxImage:     "wasmer.io/hello-world",
+	}
+	return
 }
 
 // ensureSandboxImageExists pulls the image when it's not present.
