@@ -6,6 +6,11 @@ import (
 	runtimeapi "github.com/jeasonstudio/wasmer-cri/cri/runtime/v1alpha2"
 )
 
+var (
+	// Default timeout for stopping container.
+	defaultStopTimeout = int64(10)
+)
+
 // PodSandboxManager contains methods for operating on PodSandboxes. The methods
 // are thread-safe.
 type IPodSandboxManager interface {
@@ -102,6 +107,39 @@ func (psm *PodSandboxManager) RunPodSandbox(config *runtimeapi.PodSandboxConfig,
 }
 
 // StopPodSandbox stops the sandbox. If there are any running containers in the sandbox, they should be force terminated.
-func (psm *PodSandboxManager) StopPodSandbox(podSandboxID string) error {
+func (psm *PodSandboxManager) StopPodSandbox(podSandboxID string) (err error) {
+	var containers []*runtimeapi.Container
+
+	containers, err = psm.ContainerManager.ListContainers(nil) // nil means all containers under this pod sandbox
+	if err != nil {
+		return fmt.Errorf("failed to get the containers belong to sandbox %q: %v", podSandboxID, err)
+	}
+
+	// Stop all containers in the sandbox.
+	for _, container := range containers {
+		err = psm.ContainerManager.StopContainer(container.Id, defaultStopTimeout)
+		if err != nil {
+			return fmt.Errorf("failed to stop container %q of sandbox %q: %v", container.Id, podSandboxID, err)
+		}
+		fmt.Printf("Success to stop container %q of sandbox %q", container.Id, podSandboxID)
+	}
+
+	// TODO: stop the network settings
+
 	return nil
+}
+
+// RemovePodSandbox removes the sandbox. If there are running containers in the sandbox, they should be forcibly removed.
+func (psm *PodSandboxManager) RemovePodSandbox(podSandboxID string) error {
+	return nil
+}
+
+// PodSandboxStatus returns the Status of the PodSandbox.
+func (psm *PodSandboxManager) PodSandboxStatus(podSandboxID string) (*runtimeapi.PodSandboxStatus, error) {
+	return nil, nil
+}
+
+// ListPodSandbox returns a list of Sandbox.
+func (psm *PodSandboxManager) ListPodSandbox(filter *runtimeapi.PodSandboxFilter) ([]*runtimeapi.PodSandbox, error) {
+	return nil, nil
 }
