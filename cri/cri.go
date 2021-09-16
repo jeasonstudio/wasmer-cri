@@ -51,19 +51,3 @@ type RuntimeService interface {
 	// Status returns the status of the runtime.
 	Status() (*runtimeapi.RuntimeStatus, error)
 }
-
-// ImageManagerService interface should be implemented by a container image
-// manager.
-// The methods should be thread-safe.
-type ImageManagerService interface {
-	// ListImages lists the existing images.
-	ListImages(filter *runtimeapi.ImageFilter) ([]*runtimeapi.Image, error)
-	// ImageStatus returns the status of the image.
-	ImageStatus(image *runtimeapi.ImageSpec) (*runtimeapi.Image, error)
-	// PullImage pulls an image with the authentication config.
-	PullImage(image *runtimeapi.ImageSpec, auth *runtimeapi.AuthConfig, podSandboxConfig *runtimeapi.PodSandboxConfig) (string, error)
-	// RemoveImage removes the image.
-	RemoveImage(image *runtimeapi.ImageSpec) error
-	// ImageFsInfo returns information of the filesystem that is used to store images.
-	ImageFsInfo() ([]*runtimeapi.FilesystemUsage, error)
-}

@@ -17,7 +17,12 @@ func main() {
 	// Compiles the module
 	module, _ := wasmer.NewModule(store, wasmBytes)
 
-	wasiEnv, _ := wasmer.NewWasiStateBuilder("example").Argument("/hello.txt").Argument("asdf").MapDirectory("/", ".").InheritStdout().Finalize()
+	wasiEnv, _ := wasmer.NewWasiStateBuilder("example").
+		Argument("/hello.txt").
+		Argument("asdf").
+		MapDirectory("/", ".").
+		CaptureStdout().
+		Finalize()
 
 	// Instantiates the module
 	importObject, _ := wasiEnv.GenerateImportObject(store, module)
@@ -25,7 +30,7 @@ func main() {
 	hostFunction := wasmer.NewFunction(
 		store,
 		wasmer.NewFunctionType(wasmer.NewValueTypes(), wasmer.NewValueTypes(wasmer.I32)),
-		func(args []wasmer.Value) ([]wasmer.Value, error) {
+		func(argv []wasmer.Value) ([]wasmer.Value, error) {
 			return []wasmer.Value{wasmer.NewI32(42)}, nil
 		},
 	)
@@ -49,7 +54,8 @@ func main() {
 	// Calls that exported function with Go standard values. The WebAssembly
 	// types are inferred and values are casted automatically.
 	// result, _ := sum(5, 37)
-
-	fmt.Println(res) // 42!
+	stdout := wasiEnv.ReadStdout()
+	fmt.Println(string(stdout)) // 42!
+	fmt.Println(res)            // 42!
 	// fmt.Println(result) // 42!
 }
