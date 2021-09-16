@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	wasmBytes, _ := ioutil.ReadFile("simple.wasm")
-	// wasmBytes, _ := ioutil.ReadFile("./target/wasm32-wasi/debug/example.wasm")
+	// wasmBytes, _ := ioutil.ReadFile("simple.wasm")
+	wasmBytes, _ := ioutil.ReadFile("./target/wasm32-wasi/debug/example.wasm")
 
 	engine := wasmer.NewEngine()
 	store := wasmer.NewStore(engine)
@@ -17,15 +17,24 @@ func main() {
 	// Compiles the module
 	module, _ := wasmer.NewModule(store, wasmBytes)
 
-	wasiEnv, _ := wasmer.NewWasiStateBuilder("example").Argument("--foo").
-		Environment("ABC", "DEF").
-		Environment("X", "ZY").
-		MapDirectory("the_host_current_directory", ".").
-		CaptureStdout().
-		Finalize()
+	wasiEnv, _ := wasmer.NewWasiStateBuilder("example").Argument("/hello.txt").Argument("asdf").MapDirectory("/", ".").InheritStdout().Finalize()
 
 	// Instantiates the module
 	importObject, _ := wasiEnv.GenerateImportObject(store, module)
+
+	hostFunction := wasmer.NewFunction(
+		store,
+		wasmer.NewFunctionType(wasmer.NewValueTypes(), wasmer.NewValueTypes(wasmer.I32)),
+		func(args []wasmer.Value) ([]wasmer.Value, error) {
+			return []wasmer.Value{wasmer.NewI32(42)}, nil
+		},
+	)
+	importObject.Register(
+		"hello",
+		map[string]wasmer.IntoExtern{
+			"host_function": hostFunction,
+		},
+	)
 
 	instance, _ := wasmer.NewInstance(module, importObject)
 
