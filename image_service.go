@@ -2,9 +2,10 @@ package wasmercri
 
 import (
 	"context"
-	"log"
+
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	pb "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
@@ -13,19 +14,25 @@ type ImageServer struct {
 	pb.UnimplementedImageServiceServer
 }
 
-// NewImageServer register image server
+// NewImageServer create image server
 func NewImageServer() (*ImageServer, error) {
+	log.Trace("NewImageServer create image server")
 	return &ImageServer{}, nil
 }
 
 // ListImages list images
 func (s *ImageServer) ListImages(ctx context.Context, in *pb.ListImagesRequest) (*pb.ListImagesResponse, error) {
-	log.Printf("ListImages Received: %v", in.Filter.Image)
-	myImg := &pb.Image{Id: "id1", RepoTags: []string{}, Size_: 10000, Username: "foo/bar", RepoDigests: []string{}, Spec: &pb.ImageSpec{
-		Image:       "wasm/hello-world",
+	log.WithFields(log.Fields{
+		"image":       in.Filter.Image.Image,
+		"annotations": in.Filter.Image.Annotations,
+	}).Debug("ListImages")
+
+	id := "sha256:E58FCF7418D4390DEC8E8FB69D88C06EC07039D651FEDD3AA72AF9972E7D046B"
+
+	return &pb.ListImagesResponse{Images: []*pb.Image{{Id: id, RepoTags: []string{"ghcr.io/jeasonstudio/example.wasm:latest"}, Size_: 10000, Username: "jeason", RepoDigests: []string{}, Spec: &pb.ImageSpec{
+		Image:       "ghcr.io/jeasonstudio/example.wasm:latest",
 		Annotations: map[string]string{},
-	}}
-	return &pb.ListImagesResponse{Images: []*pb.Image{myImg}}, nil
+	}}}}, nil
 }
 
 // ImageStatus show status of image

@@ -1,0 +1,6 @@
+{
+  "go.testFlags": ["-v", "-timeout", "120s"],
+  "go.testEnvVars": {
+    "LOGLEVEL": "Trace"
+  }
+}

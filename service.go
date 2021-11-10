@@ -1,10 +1,12 @@
 package wasmercri
 
 import (
-	"log"
 	"net"
+	"os"
+	"strings"
 	"syscall"
 
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	pb "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
@@ -21,6 +23,38 @@ type Service struct {
 	GRPCServer *grpc.Server
 }
 
+func init() {
+	logLevel := log.InfoLevel
+	envLogLevel := os.Getenv("LOGLEVEL")
+
+	switch strings.ToUpper(envLogLevel) {
+	case "TRACE":
+		logLevel = log.TraceLevel
+		break
+	case "DEBUG":
+		logLevel = log.DebugLevel
+		break
+	case "INFO":
+		logLevel = log.InfoLevel
+		break
+	case "WARN":
+		logLevel = log.WarnLevel
+		break
+	case "ERROR":
+		logLevel = log.ErrorLevel
+		break
+	case "FATAL":
+		logLevel = log.FatalLevel
+		break
+	default:
+	}
+
+	log.SetLevel(logLevel)
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+}
+
 // NewService create service
 func NewService(config *Config) (*Service, error) {
 	server := grpc.NewServer()
@@ -35,7 +69,10 @@ func NewService(config *Config) (*Service, error) {
 	err := syscall.Unlink(config.Address)
 	if err != nil {
 		// not really important if it fails, so do nothing
-		// log.Fatalf("Warn: Failed to unlink/clear unix socket: %v", err)
+		log.WithFields(log.Fields{
+			"network": config.Network,
+			"address": config.Address,
+		}).Warnf("Failed to unlink/clear unix socket, never mind: %v", err)
 	}
 
 	return &Service{
@@ -49,7 +86,7 @@ func (s *Service) Listen() error {
 	listener, err := net.Listen(s.Config.Network, s.Config.Address)
 	if err != nil {
 		// not really important if it fails
-		log.Fatalf("Failed to create listener: %v", err)
+		log.WithError(err).Fatal("Failed to `net.listen` when starting server.")
 		return err
 	}
 
@@ -59,7 +96,11 @@ func (s *Service) Listen() error {
 		listener.Close()
 	}()
 
-	log.Printf("Serving on %s://%s\n", s.Config.Network, listener.Addr().String())
+	log.WithFields(log.Fields{
+		"network": s.Config.Network,
+		"address": s.Config.Address,
+	}).Infof("Serving on %s://%s\n", s.Config.Network, listener.Addr().String())
+
 	if err := s.GRPCServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
