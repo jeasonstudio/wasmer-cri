@@ -1,0 +1,6 @@
+metadata:
+  attempt: 1
+  name: busybox2-sandbox
+  namespace: default
+  uid: hdishd83djaidwnduwk28bcsa
+log_directory: /tmp

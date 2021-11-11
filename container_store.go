@@ -8,23 +8,23 @@ import (
 	pb "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
-// PodSandboxStore store for pod sandbox
-type PodSandboxStore struct {
+// ContainerStore store for pod sandbox
+type ContainerStore struct {
 	lock      sync.RWMutex
-	sandboxes map[string]pb.PodSandbox
+	sandboxes map[string]pb.Container
 	idIndex   *truncindex.TruncIndex
 }
 
-// NewPodSandboxStore create pod-sandbox store
-func NewPodSandboxStore() *PodSandboxStore {
-	return &PodSandboxStore{
-		sandboxes: make(map[string]pb.PodSandbox),
+// NewContainerStore create pod-sandbox store
+func NewContainerStore() *ContainerStore {
+	return &ContainerStore{
+		sandboxes: make(map[string]pb.Container),
 		idIndex:   truncindex.NewTruncIndex([]string{}),
 	}
 }
 
 // Add a sandbox into the store.
-func (s *PodSandboxStore) Add(sb *pb.PodSandbox) error {
+func (s *ContainerStore) Add(sb *pb.Container) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -42,7 +42,7 @@ func (s *PodSandboxStore) Add(sb *pb.PodSandbox) error {
 }
 
 // Get returns the sandbox with specified id.
-func (s *PodSandboxStore) Get(id string) (pb.PodSandbox, error) {
+func (s *ContainerStore) Get(id string) (pb.Container, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -51,21 +51,21 @@ func (s *PodSandboxStore) Get(id string) (pb.PodSandbox, error) {
 		if err == truncindex.ErrNotExist {
 			err = errors.New("pod not found")
 		}
-		return pb.PodSandbox{}, err
+		return pb.Container{}, err
 	}
 
 	if sb, ok := s.sandboxes[id]; ok {
 		return sb, nil
 	}
-	return pb.PodSandbox{}, errors.New("pod not found")
+	return pb.Container{}, errors.New("pod not found")
 }
 
 // List lists all sandboxes.
-func (s *PodSandboxStore) List() []pb.PodSandbox {
+func (s *ContainerStore) List() []pb.Container {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	var sandboxes []pb.PodSandbox
+	var sandboxes []pb.Container
 
 	for _, sb := range s.sandboxes {
 		sandboxes = append(sandboxes, sb)
@@ -74,7 +74,7 @@ func (s *PodSandboxStore) List() []pb.PodSandbox {
 }
 
 // Delete deletes the sandbox with specified id.
-func (s *PodSandboxStore) Delete(id string) {
+func (s *ContainerStore) Delete(id string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	id, err := s.idIndex.Get(id)
