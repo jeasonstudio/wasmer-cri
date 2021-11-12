@@ -6,7 +6,8 @@ import (
 )
 
 func TestPushWasm(t *testing.T) {
-	err := PushFromFile("ghcr.io/jeasonstudio/example.wasm:latest", "example.wasm", nil)
+	client := NewClient()
+	err := client.PushFromFile("ghcr.io/jeasonstudio/example-new.wasm:latest", "example.wasm")
 	t.Log(err)
 }
 

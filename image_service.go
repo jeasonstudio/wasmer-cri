@@ -20,21 +20,6 @@ func NewImageServer() (*ImageServer, error) {
 	return &ImageServer{}, nil
 }
 
-// ListImages list images
-func (s *ImageServer) ListImages(ctx context.Context, in *pb.ListImagesRequest) (*pb.ListImagesResponse, error) {
-	log.WithFields(log.Fields{
-		"image":       in.Filter.Image.Image,
-		"annotations": in.Filter.Image.Annotations,
-	}).Debug("ListImages")
-
-	id := "sha256:E58FCF7418D4390DEC8E8FB69D88C06EC07039D651FEDD3AA72AF9972E7D046B"
-
-	return &pb.ListImagesResponse{Images: []*pb.Image{{Id: id, RepoTags: []string{"ghcr.io/jeasonstudio/example.wasm:latest"}, Size_: 10000, Username: "jeason", RepoDigests: []string{}, Spec: &pb.ImageSpec{
-		Image:       "ghcr.io/jeasonstudio/example.wasm:latest",
-		Annotations: map[string]string{},
-	}}}}, nil
-}
-
 // ImageStatus show status of image
 func (s *ImageServer) ImageStatus(ctx context.Context, in *pb.ImageStatusRequest) (*pb.ImageStatusResponse, error) {
 	log.Printf("ImageStatus Received: %v", in.Image)
@@ -45,14 +30,6 @@ func (s *ImageServer) ImageStatus(ctx context.Context, in *pb.ImageStatusRequest
 	return &pb.ImageStatusResponse{
 		Image: myImg,
 		Info:  map[string]string{},
-	}, nil
-}
-
-// PullImage pull image
-func (s *ImageServer) PullImage(ctx context.Context, in *pb.PullImageRequest) (*pb.PullImageResponse, error) {
-	log.Printf("PullImage Received: %v", in.Image)
-	return &pb.PullImageResponse{
-		ImageRef: "my-image-ref",
 	}, nil
 }
 
