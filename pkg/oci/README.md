@@ -1,6 +1,6 @@
 # Webassembly Open Container Interface
 
-> Thanks to:
+> Inspired by:
 > * [https://github.com/engineerd/wasm-to-oci](https://github.com/engineerd/wasm-to-oci)
 > * [https://github.com/oras-project/oras-go](https://github.com/oras-project/oras-go)
 
@@ -31,4 +31,19 @@ Push/Pull webassembly from registry. OCI manfiest sample json:
     "org.opencontainers.image.created": "2021-11-12T19:22:07+08:00"
   }
 }
+```
+
+
+## Push example
+
+```golang
+client := oci.NewClient()
+err := client.PushFromFile("ghcr.io/jeasonstudio/example-new.wasm:latest", "example.wasm")
+```
+
+## Pull example
+
+```golang
+client := oci.NewClient()
+client.PullToFile("ghcr.io/jeasonstudio/example.wasm:latest", "target.wasm")
 ```
